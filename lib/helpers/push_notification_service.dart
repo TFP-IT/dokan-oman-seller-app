@@ -1,3 +1,6 @@
+import 'package:active_ecommerce_seller_app/cook_habibi/ch_session.dart';
+import 'package:active_ecommerce_seller_app/cook_habibi/screens/ch_order_detail.dart';
+import 'package:active_ecommerce_seller_app/cook_habibi/screens/ch_orders.dart';
 import 'package:active_ecommerce_seller_app/helpers/shared_value_helper.dart';
 import 'package:active_ecommerce_seller_app/repositories/push_notification_repository.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -41,14 +44,20 @@ class PushNotificationService {
 
     // print("--fcm token--");
     // print(fcmToken);
-    if (is_logged_in.$ == true) {
-      // update device token
-      var deviceTokenUpdateResponse = await PushNotificationRepository()
-          .getDeviceTokenUpdateResponse(fcmToken!);
+    if (is_logged_in.$ == true && fcmToken != null) {
+      // update device token (old endpoint + Cook Habibi device, guide §3.2)
+      PushNotificationRepository()
+          .getDeviceTokenUpdateResponse(fcmToken)
+          .catchError((_) {});
+      ChSession.registerPush();
     }
 
     FirebaseMessaging.onMessage.listen((event) {
       //print("onLaunch: " + event.toString());
+      if (_isCookOrder(event.data)) {
+        // pushes are best-effort: refresh any open order screen
+        chOrdersRefreshTick.value++;
+      }
       _showMessage(event);
       //(Map<String, dynamic> message) async => _showMessage(message);
 
@@ -81,9 +90,27 @@ class PushNotificationService {
     });
 
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      print("onResume: $message");
-      (Map<String, dynamic> message) async => _serialiseAndNavigate(message);
+      _serialiseAndNavigate({"data": message.data});
     });
+
+    // app opened from a push while it was closed
+    final initial = await _fcm.getInitialMessage();
+    if (initial != null) {
+      Future.delayed(const Duration(seconds: 2),
+          () => _serialiseAndNavigate({"data": initial.data}));
+    }
+  }
+
+  static bool _isCookOrder(Map<String, dynamic> data) =>
+      data['type'] == 'cook_habibi_order' && data['order_id'] != null;
+
+  static void _openCookOrder(Map<String, dynamic> data) {
+    final id = int.tryParse(data['order_id'].toString());
+    if (id == null) return;
+    chOrdersRefreshTick.value++;
+    OneContext().push(MaterialPageRoute(builder: (_) {
+      return ChOrderDetail(orderId: id);
+    }));
   }
 
   void _showMessage(RemoteMessage message) {
@@ -93,8 +120,8 @@ class PushNotificationService {
       // barrierDismissible: false,
       builder: (context) => AlertDialog(
         content: ListTile(
-          title: Text(message.notification!.title!),
-          subtitle: Text(message.notification!.body!),
+          title: Text(message.notification?.title ?? "Cook Habibi"),
+          subtitle: Text(message.notification?.body ?? ""),
         ),
         actions: <Widget>[
           TextButton(
@@ -111,7 +138,9 @@ class PushNotificationService {
               }
               //print(message);
               Navigator.of(context).pop();
-              if (message.data['item_type'] == 'order') {
+              if (_isCookOrder(message.data)) {
+                _openCookOrder(message.data);
+              } else if (message.data['item_type'] == 'order') {
                 OneContext().push(MaterialPageRoute(builder: (_) {
                   return OrderDetails(
                     id: int.parse(message.data['item_type_id']),
@@ -150,10 +179,13 @@ class PushNotificationService {
               ));
       return;
     }
-    if (message['data']['item_type'] == 'order') {
+    final data = Map<String, dynamic>.from(message['data'] ?? {});
+    if (_isCookOrder(data)) {
+      _openCookOrder(data);
+    } else if (data['item_type'] == 'order') {
       OneContext().push(MaterialPageRoute(builder: (_) {
         return OrderDetails(
-          id: int.parse(message['data']['item_type_id']),
+          id: int.parse(data['item_type_id'].toString()),
         );
       }));
     } // If there's no view it'll just open the app on the first view    }

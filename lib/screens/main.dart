@@ -12,6 +12,7 @@ import 'package:active_ecommerce_seller_app/screens/conversation.dart';
 import 'package:active_ecommerce_seller_app/screens/home.dart';
 import 'package:active_ecommerce_seller_app/screens/orders.dart';
 import 'package:active_ecommerce_seller_app/screens/product/products.dart';
+import 'package:active_ecommerce_seller_app/screens/service_chooser.dart';
 import 'package:active_ecommerce_seller_app/screens/profile.dart';
 
 import 'package:flutter/cupertino.dart';
@@ -169,9 +170,21 @@ class _MainState extends State<Main> {
           : const Border(bottom: BorderSide(color: MyTheme.hairline)),
       titleSpacing: 16,
       title: onDashboard
-          ? Text(getTitle(),
-              style: AppTheme.body(
-                  size: 18, weight: FontWeight.w600, color: Colors.white))
+          ? Row(
+              children: [
+                IconButton(
+                  tooltip: "Switch dashboard",
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  icon: const Icon(Icons.apps_rounded, color: Colors.white),
+                  onPressed: () => ServiceChooser.open(context),
+                ),
+                const SizedBox(width: 12),
+                Text(getTitle(),
+                    style: AppTheme.body(
+                        size: 18, weight: FontWeight.w600, color: Colors.white)),
+              ],
+            )
           : Row(
               children: [
                 BackChip(

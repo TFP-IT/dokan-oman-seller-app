@@ -1,3 +1,4 @@
+import 'package:active_ecommerce_seller_app/cook_habibi/ch_repository.dart';
 import 'package:active_ecommerce_seller_app/custom/buttons.dart';
 import 'package:active_ecommerce_seller_app/custom/device_info.dart';
 import 'package:active_ecommerce_seller_app/custom/localization.dart';
@@ -70,6 +71,10 @@ class _AccountState extends State<Account> with TickerProviderStateMixin {
   final ExpansionTileController expansionTileController =
       ExpansionTileController();
   logoutReq() async {
+    // Cook Habibi: stop pushes to this phone before the token is cleared
+    try {
+      await ChRepository().removeDevice();
+    } catch (_) {}
     var response = await AuthRepository().getLogoutResponse();
 
     if (response.result!) {

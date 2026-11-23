@@ -1,5 +1,7 @@
 import 'package:active_ecommerce_seller_app/app_config.dart';
 import 'package:active_ecommerce_seller_app/app_theme.dart';
+import 'package:active_ecommerce_seller_app/cook_habibi/ch_session.dart';
+import 'package:active_ecommerce_seller_app/screens/service_chooser.dart';
 import 'package:active_ecommerce_seller_app/helpers/aiz_route.dart';
 import 'package:active_ecommerce_seller_app/helpers/auth_helper.dart';
 import 'package:active_ecommerce_seller_app/helpers/shared_value_helper.dart';
@@ -7,7 +9,6 @@ import 'package:active_ecommerce_seller_app/middlewares/mail_verification_route_
 import 'package:active_ecommerce_seller_app/my_theme.dart';
 import 'package:active_ecommerce_seller_app/screens/home.dart';
 import 'package:active_ecommerce_seller_app/screens/login.dart';
-import 'package:active_ecommerce_seller_app/screens/main.dart';
 import 'package:flutter/material.dart';
 
 import 'dart:async';
@@ -156,7 +157,8 @@ class _CustomSplashScreenState extends State<CustomSplashScreen> {
     access_token.load().then((value) {
       AuthHelper().fetch_and_set().then((value) {
         if (value.result != null && value.result!) {
-          AIZRoute.pushAndRemoveAll(context, Main(),
+          ChSession.registerPush();
+          AIZRoute.pushAndRemoveAll(context, const ServiceChooser(),
               middleware: MailVerificationRouteMiddleware());
         } else {
           AIZRoute.pushAndRemoveAll(context, Login());

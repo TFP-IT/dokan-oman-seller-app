@@ -1,0 +1,1575 @@
+{
+  "info": {
+    "name": "Cook Habibi – Seller (cook) API",
+    "description": "Cook (seller) app API, production version. Contract: docs/cook_habibi/cook_habibi_api.md (§14). Pick the environment, run 'Sign in (cook)' first; it saves cook_token. Order and story ids are saved by the creating requests or set by hand in the environment.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{cook_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "1 · Sign in and application",
+      "description": "Works before approval too. The token is a seller token (cook ability, expires after 30 days).",
+      "item": [
+        {
+          "name": "Sign in (cook)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "System-Key",
+                "value": "{{system_key}}"
+              },
+              {
+                "key": "App-Language",
+                "value": "{{app_language}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Sends user_type=seller. Saves cook_token. 10 failed sign-ins in a minute return 429.",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"login_by\": \"email\",\n  \"email\": \"{{cook_email}}\",\n  \"password\": \"{{cook_password}}\",\n  \"user_type\": \"seller\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": "\nconst j = pm.response.json();\nif (j.access_token) {\n  pm.environment.set('cook_token', j.access_token);\n}\npm.test('login returns a token', () => pm.expect(j.access_token).to.be.a('string'));\n"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Application status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "System-Key",
+                "value": "{{system_key}}"
+              },
+              {
+                "key": "App-Language",
+                "value": "{{app_language}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/seller/cook-habibi/application",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "seller",
+                "cook-habibi",
+                "application"
+              ]
+            },
+            "description": "pending / approved / rejected, rejection_reason, can_resubmit, missing_checks."
+          },
+          "response": []
+        },
+        {
+          "name": "Resubmit application",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "System-Key",
+                "value": "{{system_key}}"
+              },
+              {
+                "key": "App-Language",
+                "value": "{{app_language}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/seller/cook-habibi/application/resubmit",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "seller",
+                "cook-habibi",
+                "application",
+                "resubmit"
+              ]
+            },
+            "description": "Only when rejected. 422 otherwise."
+          },
+          "response": []
+        },
+        {
+          "name": "Register push device",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "System-Key",
+                "value": "{{system_key}}"
+              },
+              {
+                "key": "App-Language",
+                "value": "{{app_language}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/seller/cook-habibi/device",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "seller",
+                "cook-habibi",
+                "device"
+              ]
+            },
+            "description": "Saves the FCM token for this cook.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"device_token\": \"{{device_token}}\",\n  \"device_type\": \"android\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Remove push device",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "System-Key",
+                "value": "{{system_key}}"
+              },
+              {
+                "key": "App-Language",
+                "value": "{{app_language}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/seller/cook-habibi/device",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "seller",
+                "cook-habibi",
+                "device"
+              ]
+            },
+            "description": "Call on sign-out."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2 · Kitchen",
+      "description": "Profile, hours and open/close. Needs an approved kitchen.",
+      "item": [
+        {
+          "name": "Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "System-Key",
+                "value": "{{system_key}}"
+              },
+              {
+                "key": "App-Language",
+                "value": "{{app_language}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/seller/cook-habibi/profile",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "seller",
+                "cook-habibi",
+                "profile"
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Profile – update",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "System-Key",
+                "value": "{{system_key}}"
+              },
+              {
+                "key": "App-Language",
+                "value": "{{app_language}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/seller/cook-habibi/profile",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "seller",
+                "cook-habibi",
+                "profile"
+              ]
+            },
+            "description": "Only the cook's own fields. Admin fields are ignored.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"kitchen_name\": \"Bait Al Shuwa\",\n  \"delivery_fee\": 0.75,\n  \"delivery_radius_km\": 5,\n  \"pickup_enabled\": true,\n  \"delivery_enabled\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Schedule – update",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "System-Key",
+                "value": "{{system_key}}"
+              },
+              {
+                "key": "App-Language",
+                "value": "{{app_language}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/seller/cook-habibi/schedule",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "seller",
+                "cook-habibi",
+                "schedule"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"working_hours\": {\n    \"mon\": [\n      \"10:00\",\n      \"22:00\"\n    ],\n    \"tue\": [\n      \"10:00\",\n      \"22:00\"\n    ]\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Open (accepting orders)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "System-Key",
+                "value": "{{system_key}}"
+              },
+              {
+                "key": "App-Language",
+                "value": "{{app_language}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/seller/cook-habibi/open",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "seller",
+                "cook-habibi",
+                "open"
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Close",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "System-Key",
+                "value": "{{system_key}}"
+              },
+              {
+                "key": "App-Language",
+                "value": "{{app_language}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/seller/cook-habibi/close",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "seller",
+                "cook-habibi",
+                "close"
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Upload image (returns upload_id)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "System-Key",
+                "value": "{{system_key}}"
+              },
+              {
+                "key": "App-Language",
+                "value": "{{app_language}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/seller/cook-habibi/uploads",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "seller",
+                "cook-habibi",
+                "uploads"
+              ]
+            },
+            "description": "Image, max 5 MB. Saves upload_id.",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": "\nconst j = pm.response.json();\nconst id = (j.data && j.data.upload_id) || j.upload_id;\nif (id) pm.environment.set('upload_id', id);\n"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3 · Dishes",
+      "description": "Menu items. A dish with orders cannot be deleted; hide it instead.",
+      "item": [
+        {
+          "name": "Dishes – my list",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "System-Key",
+                "value": "{{system_key}}"
+              },
+              {
+                "key": "App-Language",
+                "value": "{{app_language}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/seller/cook-habibi/dishes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "seller",
+                "cook-habibi",
+                "dishes"
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Dish – create",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "System-Key",
+                "value": "{{system_key}}"
+              },
+              {
+                "key": "App-Language",
+                "value": "{{app_language}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/seller/cook-habibi/dishes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "seller",
+                "cook-habibi",
+                "dishes"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Shuwa Plate\",\n  \"description\": \"Slow-roasted lamb.\",\n  \"price\": 4.25,\n  \"discount_percent\": 10,\n  \"emoji\": \"\\ud83c\\udf56\",\n  \"serves\": 2,\n  \"dietary\": [\n    \"halal\"\n  ],\n  \"allergens\": [\n    \"Sesame\"\n  ],\n  \"daily_capacity\": 5,\n  \"published\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": "\nconst j = pm.response.json();\nif (j.data && j.data.id) pm.environment.set('dish_id', j.data.id);\n"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Dish – show",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "System-Key",
+                "value": "{{system_key}}"
+              },
+              {
+                "key": "App-Language",
+                "value": "{{app_language}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/seller/cook-habibi/dishes/{{dish_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "seller",
+                "cook-habibi",
+                "dishes",
+                "{{dish_id}}"
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Dish – update",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "System-Key",
+                "value": "{{system_key}}"
+              },
+              {
+                "key": "App-Language",
+                "value": "{{app_language}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/seller/cook-habibi/dishes/{{dish_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "seller",
+                "cook-habibi",
+                "dishes",
+                "{{dish_id}}"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"price\": 4.5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Dish – show / hide",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "System-Key",
+                "value": "{{system_key}}"
+              },
+              {
+                "key": "App-Language",
+                "value": "{{app_language}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/seller/cook-habibi/dishes/{{dish_id}}/status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "seller",
+                "cook-habibi",
+                "dishes",
+                "{{dish_id}}",
+                "status"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"published\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Dish – today's portions",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "System-Key",
+                "value": "{{system_key}}"
+              },
+              {
+                "key": "App-Language",
+                "value": "{{app_language}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/seller/cook-habibi/dishes/{{dish_id}}/capacity",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "seller",
+                "cook-habibi",
+                "dishes",
+                "{{dish_id}}",
+                "capacity"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"daily_capacity\": 8\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Dish – delete (422 if it has orders)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "System-Key",
+                "value": "{{system_key}}"
+              },
+              {
+                "key": "App-Language",
+                "value": "{{app_language}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/seller/cook-habibi/dishes/{{dish_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "seller",
+                "cook-habibi",
+                "dishes",
+                "{{dish_id}}"
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4 · Stories",
+      "description": "Upload a photo first, then post it. A story lives 24 hours; 10 live at once.",
+      "item": [
+        {
+          "name": "Stories – my list",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "System-Key",
+                "value": "{{system_key}}"
+              },
+              {
+                "key": "App-Language",
+                "value": "{{app_language}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/seller/cook-habibi/stories",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "seller",
+                "cook-habibi",
+                "stories"
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Story – post",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "System-Key",
+                "value": "{{system_key}}"
+              },
+              {
+                "key": "App-Language",
+                "value": "{{app_language}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/seller/cook-habibi/stories",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "seller",
+                "cook-habibi",
+                "stories"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"upload_id\": \"{{upload_id}}\",\n  \"caption\": \"Fresh lamb today\",\n  \"dish_id\": \"{{dish_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": "\nconst j = pm.response.json();\nif (j.data && j.data.id) pm.environment.set('story_id', j.data.id);\n"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Story – edit caption or dish",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "System-Key",
+                "value": "{{system_key}}"
+              },
+              {
+                "key": "App-Language",
+                "value": "{{app_language}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/seller/cook-habibi/stories/{{story_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "seller",
+                "cook-habibi",
+                "stories",
+                "{{story_id}}"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"caption\": \"Last portions!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Story – delete",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "System-Key",
+                "value": "{{system_key}}"
+              },
+              {
+                "key": "App-Language",
+                "value": "{{app_language}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/seller/cook-habibi/stories/{{story_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "seller",
+                "cook-habibi",
+                "stories",
+                "{{story_id}}"
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "5 · Orders",
+      "description": "Each step is checked by the order rules. next_actions lists what is allowed now.",
+      "item": [
+        {
+          "name": "Orders – active",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "System-Key",
+                "value": "{{system_key}}"
+              },
+              {
+                "key": "App-Language",
+                "value": "{{app_language}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/seller/cook-habibi/orders?tab=active",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "seller",
+                "cook-habibi",
+                "orders?tab=active"
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Orders – past",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "System-Key",
+                "value": "{{system_key}}"
+              },
+              {
+                "key": "App-Language",
+                "value": "{{app_language}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/seller/cook-habibi/orders?tab=past",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "seller",
+                "cook-habibi",
+                "orders?tab=past"
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Order – detail (shows next_actions)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "System-Key",
+                "value": "{{system_key}}"
+              },
+              {
+                "key": "App-Language",
+                "value": "{{app_language}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/seller/cook-habibi/orders/{{order_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "seller",
+                "cook-habibi",
+                "orders",
+                "{{order_id}}"
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Accept",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "System-Key",
+                "value": "{{system_key}}"
+              },
+              {
+                "key": "App-Language",
+                "value": "{{app_language}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/seller/cook-habibi/orders/{{order_id}}/accept",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "seller",
+                "cook-habibi",
+                "orders",
+                "{{order_id}}",
+                "accept"
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Preparing",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "System-Key",
+                "value": "{{system_key}}"
+              },
+              {
+                "key": "App-Language",
+                "value": "{{app_language}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/seller/cook-habibi/orders/{{order_id}}/preparing",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "seller",
+                "cook-habibi",
+                "orders",
+                "{{order_id}}",
+                "preparing"
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Ready",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "System-Key",
+                "value": "{{system_key}}"
+              },
+              {
+                "key": "App-Language",
+                "value": "{{app_language}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/seller/cook-habibi/orders/{{order_id}}/ready",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "seller",
+                "cook-habibi",
+                "orders",
+                "{{order_id}}",
+                "ready"
+              ]
+            },
+            "description": "Pickup: the customer then shows the code. Delivery: the rider collects it."
+          },
+          "response": []
+        },
+        {
+          "name": "Out for delivery (delivery orders)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "System-Key",
+                "value": "{{system_key}}"
+              },
+              {
+                "key": "App-Language",
+                "value": "{{app_language}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/seller/cook-habibi/orders/{{order_id}}/out-for-delivery",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "seller",
+                "cook-habibi",
+                "orders",
+                "{{order_id}}",
+                "out-for-delivery"
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Handover – pickup code",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "System-Key",
+                "value": "{{system_key}}"
+              },
+              {
+                "key": "App-Language",
+                "value": "{{app_language}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/seller/cook-habibi/orders/{{order_id}}/handover",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "seller",
+                "cook-habibi",
+                "orders",
+                "{{order_id}}",
+                "handover"
+              ]
+            },
+            "description": "Pickup orders at ready. The customer's 4-digit code. Five wrong codes lock it for 15 minutes.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"otp\": \"{{pickup_otp}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Reject (placed only, refunds the customer)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "System-Key",
+                "value": "{{system_key}}"
+              },
+              {
+                "key": "App-Language",
+                "value": "{{app_language}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/seller/cook-habibi/orders/{{order_id}}/reject",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "seller",
+                "cook-habibi",
+                "orders",
+                "{{order_id}}",
+                "reject"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Kitchen is full\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "6 · Money and dashboard",
+      "description": "Read-only. Amounts are numbers.",
+      "item": [
+        {
+          "name": "Dashboard – today",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "System-Key",
+                "value": "{{system_key}}"
+              },
+              {
+                "key": "App-Language",
+                "value": "{{app_language}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/seller/cook-habibi/dashboard",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "seller",
+                "cook-habibi",
+                "dashboard"
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Earnings – balance, released, recent",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "System-Key",
+                "value": "{{system_key}}"
+              },
+              {
+                "key": "App-Language",
+                "value": "{{app_language}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/seller/cook-habibi/earnings",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "seller",
+                "cook-habibi",
+                "earnings"
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "7 · Negative checks",
+      "description": "Each should fail the way shown in the description.",
+      "item": [
+        {
+          "name": "No token → 401",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "System-Key",
+                "value": "{{system_key}}"
+              },
+              {
+                "key": "App-Language",
+                "value": "{{app_language}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/seller/cook-habibi/profile",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "seller",
+                "cook-habibi",
+                "profile"
+              ]
+            },
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cook cannot mark delivered → 404",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "System-Key",
+                "value": "{{system_key}}"
+              },
+              {
+                "key": "App-Language",
+                "value": "{{app_language}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/seller/cook-habibi/orders/{{order_id}}/delivered",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "seller",
+                "cook-habibi",
+                "orders",
+                "{{order_id}}",
+                "delivered"
+              ]
+            },
+            "description": "There is no delivered step for the cook. Delivery is confirmed by the rider's code."
+          },
+          "response": []
+        },
+        {
+          "name": "Handover with a wrong code → 422",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "System-Key",
+                "value": "{{system_key}}"
+              },
+              {
+                "key": "App-Language",
+                "value": "{{app_language}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/seller/cook-habibi/orders/{{order_id}}/handover",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "seller",
+                "cook-habibi",
+                "orders",
+                "{{order_id}}",
+                "handover"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"otp\": \"0000\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Edit someone else's story → 404",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "System-Key",
+                "value": "{{system_key}}"
+              },
+              {
+                "key": "App-Language",
+                "value": "{{app_language}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/seller/cook-habibi/stories/999999",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "seller",
+                "cook-habibi",
+                "stories",
+                "999999"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"caption\": \"x\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

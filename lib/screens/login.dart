@@ -1,5 +1,7 @@
 import 'package:active_ecommerce_seller_app/app_config.dart';
 import 'package:active_ecommerce_seller_app/app_theme.dart';
+import 'package:active_ecommerce_seller_app/cook_habibi/ch_session.dart';
+import 'package:active_ecommerce_seller_app/screens/service_chooser.dart';
 import 'package:active_ecommerce_seller_app/custom/input_decorations.dart';
 import 'package:active_ecommerce_seller_app/custom/intl_phone_input.dart';
 import 'package:active_ecommerce_seller_app/custom/localization.dart';
@@ -11,7 +13,6 @@ import 'package:active_ecommerce_seller_app/helpers/shared_value_helper.dart';
 import 'package:active_ecommerce_seller_app/my_theme.dart';
 import 'package:active_ecommerce_seller_app/repositories/address_repository.dart';
 import 'package:active_ecommerce_seller_app/repositories/auth_repository.dart';
-import 'package:active_ecommerce_seller_app/screens/main.dart';
 import 'package:active_ecommerce_seller_app/screens/password_forget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -111,15 +112,16 @@ class _LoginState extends State<Login> {
           gravity: Toast.center, duration: Toast.lengthLong);
       AuthHelper().setUserData(loginResponse);
 
-      access_token.load().whenComplete(() {
-        if (access_token.$!.isNotEmpty) {
-          Navigator.pushAndRemoveUntil(context, MaterialPageRoute(
-            builder: (context) {
-              return Main();
-            },
-          ), (route) => false);
-        }
-      });
+      await access_token.load();
+      if (access_token.$!.isNotEmpty) {
+        // Cook Habibi push device, then let the seller pick a dashboard
+        ChSession.registerPush();
+        if (!mounted) return;
+        Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => const ServiceChooser()),
+            (route) => false);
+      }
     } else {
       ToastComponent.showDialog(loginResponse.message!,
           gravity: Toast.center, duration: Toast.lengthLong);
