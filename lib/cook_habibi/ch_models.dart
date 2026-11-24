@@ -383,3 +383,43 @@ class ChStory {
     );
   }
 }
+
+// ---- order chat (§9b) -------------------------------------------------------
+
+class ChMessage {
+  final int id;
+  final String text;
+  final String from; // customer | cook
+  final bool isMine;
+  final DateTime? createdAt;
+
+  ChMessage({
+    required this.id,
+    required this.text,
+    required this.from,
+    required this.isMine,
+    this.createdAt,
+  });
+
+  factory ChMessage.fromJson(Map<String, dynamic> j) => ChMessage(
+        id: chInt(j["id"]) ?? 0,
+        text: chStr(j["text"] ?? j["message"]) ?? "",
+        from: chStr(j["from"]) ?? "",
+        isMine: chBool(j["is_mine"]),
+        createdAt: chDate(j["created_at"]),
+      );
+}
+
+/// One page of `orders/{id}/messages`, newest first.
+class ChMessagePage {
+  final List<ChMessage> items;
+  final int currentPage;
+  final int lastPage;
+  final bool chatOpen;
+  final bool hasUnread;
+
+  ChMessagePage(this.items, this.currentPage, this.lastPage,
+      {this.chatOpen = true, this.hasUnread = false});
+
+  bool get hasMore => currentPage < lastPage;
+}

@@ -12,7 +12,7 @@ class AppConfig {
       "123456"; //enter your purchase code for the app from codecanyon
 
   //static const bool HTTPS = true;
-  static const bool HTTPS = true;
+  static const bool HTTPS = false;
 
   //Default language config
   static String default_language = "en";
@@ -22,7 +22,7 @@ class AppConfig {
   //configure this
 
 
-  static const DOMAIN_PATH = 'conclude-shush-ceremony.ngrok-free.dev';
+  static const DOMAIN_PATH = '10.10.10.189:8000';
 
   //do not configure these below
   static const String API_ENDPATH = "api/v2";

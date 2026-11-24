@@ -227,12 +227,29 @@ Amounts are plain numbers. Format them in the app with the currency `currency` (
 
 ---
 
+## 9b. Chat, reviews, password (added 2026-11-24)
+
+**Chat with the customer (per order).** `GET orders/{id}/messages?page=` lists messages, newest first. `POST orders/{id}/messages` with `{"message"}` sends one (max 1000 characters; send an `Idempotency-Key` so a double-tap does not send twice). `POST orders/{id}/messages/read` clears the unread dot. The response's `chat_open` is `false` once the order is finished; then show the history read-only. Each message has `is_mine`. Use it to align the bubble side.
+
+**Reviews.** `GET reviews?page=` lists published reviews, newest first, with `reply` and `replied_at`. `POST reviews/{id}/reply` with `{"reply"}` (max 500 characters) posts one reply. A second reply returns `422`, so hide the reply button once `replied_at` is set.
+
+**Password.** `PUT password` with `current_password`, `password` (min 8) and `password_confirmation`. A wrong current password returns `422` on `errors.current_password`. On success, every other signed-in device is signed out, so this phone keeps working and the others need to sign in again.
+
+**Earnings history.** `GET earnings/releases?page=` (released orders) and `GET earnings/payments?page=` (payouts from the platform), both paginated with `meta`.
+
+**Notifications.** The same endpoints as the customer app: `notifications`, `notifications/unread-count`, `notifications/{id}/read`, `notifications/read-all`. They include order updates and the application decision, so a pending applicant can use them too.
+
+---
+
 ## 10. Push notifications
 
 The backend sends a push for each order change, such as a new order, a cancellation, or the customer's status updates. Each push carries:
 - `title`: "Cook Habibi"
 - `body`: the message text
 - `data`: `type` = `cook_habibi_order`, `order_id`, `status`
+
+Chat messages send a second type, so the app can open the chat instead of the order:
+- `data`: `type` = `cook_habibi_chat`, `order_id`, `conversation_id`. The body is always the generic "New message about your order #CODE". The text of the message is never in the push. Open `orders/{order_id}/messages` to read it.
 
 When the user taps a push, open the order detail for `order_id`. Pushes are best-effort, so always refresh the order list when the app opens. The in-app notification list has the full history.
 
@@ -283,4 +300,6 @@ Send `Idempotency-Key` on these writes: order steps (`accept`, `preparing`, `rea
 - Earnings show what is released; the cook is paid by the admin office, not in the app.
 - Live rider tracking is not in this version. Show the order status only.
 - Rider confirmation of delivery happens in the rider app; the seller app only shows `out_for_delivery` and then the delivered status.
+- Escrow is released by the admin after the order is delivered. A handover code does not release the money, so the earnings show the order as held until then.
+- Notification preferences and a payout log are not in this version.
 - Friday is closed in the default hours, unless the kitchen sets Friday hours.

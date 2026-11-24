@@ -5,6 +5,7 @@ import 'package:active_ecommerce_seller_app/cook_habibi/ch_api.dart';
 import 'package:active_ecommerce_seller_app/cook_habibi/ch_models.dart';
 import 'package:active_ecommerce_seller_app/cook_habibi/ch_repository.dart';
 import 'package:active_ecommerce_seller_app/cook_habibi/ch_ui.dart';
+import 'package:active_ecommerce_seller_app/cook_habibi/screens/ch_order_chat.dart';
 import 'package:active_ecommerce_seller_app/cook_habibi/screens/ch_orders.dart';
 import 'package:active_ecommerce_seller_app/my_theme.dart';
 import 'package:flutter/material.dart';
@@ -160,7 +161,14 @@ class _ChOrderDetailState extends State<ChOrderDetail> {
     final o = _order;
     return Scaffold(
       backgroundColor: MyTheme.paper,
-      appBar: chAppBar(context, o?.code ?? "Order"),
+      appBar: chAppBar(context, o?.code ?? "Order", actions: [
+        if (o != null)
+          IconButton(
+            tooltip: "Chat with customer",
+            icon: const Icon(Icons.chat_bubble_outline_rounded),
+            onPressed: () => _openChat(o),
+          ),
+      ]),
       body: o == null
           ? (_error != null
               ? ChErrorView(message: chErrorText(_error!), onRetry: _load)
@@ -272,11 +280,22 @@ class _ChOrderDetailState extends State<ChOrderDetail> {
                       "The rider confirms the customer's code. You don't need to do anything.",
                       style: AppTheme.body(size: 13, color: MyTheme.medium_grey)),
                 ],
+                const SizedBox(height: 12),
+                ChButton(
+                  label: "Chat with customer",
+                  outlined: true,
+                  onPressed: () => _openChat(o),
+                ),
                 const SizedBox(height: 20),
                 ..._actionButtons(o),
               ]),
             ),
     );
+  }
+
+  void _openChat(ChOrder o) {
+    Navigator.of(context).push(MaterialPageRoute(
+        builder: (_) => ChOrderChat(orderId: o.id, title: "Chat ${o.code}")));
   }
 
   List<Widget> _actionButtons(ChOrder o) {

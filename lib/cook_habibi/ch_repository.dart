@@ -178,6 +178,37 @@ class ChRepository {
   Future<String> deleteStory(int id) async => _message(
       await ChApi.delete(ChApi.seller("stories/$id")), "Story deleted.");
 
+  // ---- order chat (§9b) -----------------------------------------------------
+
+  /// Newest first. `chat_open` is false once the order is finished.
+  Future<ChMessagePage> messages(int orderId, {int page = 1}) async {
+    final m = chMap(
+        await ChApi.get(ChApi.seller("orders/$orderId/messages?page=$page")));
+    final list = m["data"] is List ? m["data"] as List : const [];
+    final meta = chMap(m["meta"]);
+    final current = chInt(meta["current_page"]) ?? 1;
+    final last = chInt(meta["last_page"]) ?? current;
+    return ChMessagePage(
+      list.map((e) => ChMessage.fromJson(chMap(e))).toList(),
+      current,
+      last,
+      chatOpen: chBool(m["chat_open"] ?? meta["chat_open"], true),
+      hasUnread: chBool(m["has_unread"] ?? meta["has_unread"]),
+    );
+  }
+
+  /// 1 to 1000 characters. Returns the sent message when the server sends it.
+  Future<ChMessage?> sendMessage(
+      int orderId, String text, String idempotencyKey) async {
+    final res = await ChApi.post(ChApi.seller("orders/$orderId/messages"),
+        body: {"message": text}, idempotencyKey: idempotencyKey);
+    final d = _data(res);
+    return d.isEmpty ? null : ChMessage.fromJson(d);
+  }
+
+  Future<void> markMessagesRead(int orderId) =>
+      ChApi.post(ChApi.seller("orders/$orderId/messages/read"));
+
   // ---- money (§9) -----------------------------------------------------------
 
   Future<ChDashboard> dashboard() async =>

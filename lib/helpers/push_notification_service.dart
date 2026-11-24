@@ -1,4 +1,5 @@
 import 'package:active_ecommerce_seller_app/cook_habibi/ch_session.dart';
+import 'package:active_ecommerce_seller_app/cook_habibi/screens/ch_order_chat.dart';
 import 'package:active_ecommerce_seller_app/cook_habibi/screens/ch_order_detail.dart';
 import 'package:active_ecommerce_seller_app/cook_habibi/screens/ch_orders.dart';
 import 'package:active_ecommerce_seller_app/helpers/shared_value_helper.dart';
@@ -57,6 +58,9 @@ class PushNotificationService {
       if (_isCookOrder(event.data)) {
         // pushes are best-effort: refresh any open order screen
         chOrdersRefreshTick.value++;
+      } else if (_isCookChat(event.data)) {
+        // refresh the chat if it is open (the push never carries the text)
+        _bumpChat(event.data);
       }
       _showMessage(event);
       //(Map<String, dynamic> message) async => _showMessage(message);
@@ -104,6 +108,26 @@ class PushNotificationService {
   static bool _isCookOrder(Map<String, dynamic> data) =>
       data['type'] == 'cook_habibi_order' && data['order_id'] != null;
 
+  static bool _isCookChat(Map<String, dynamic> data) =>
+      data['type'] == 'cook_habibi_chat' && data['order_id'] != null;
+
+  static void _bumpChat(Map<String, dynamic> data) {
+    final id = int.tryParse(data['order_id'].toString());
+    if (id == null) return;
+    // reset first so the same order fires the listener again
+    chChatPushOrderId.value = null;
+    chChatPushOrderId.value = id;
+  }
+
+  static void _openCookChat(Map<String, dynamic> data) {
+    final id = int.tryParse(data['order_id'].toString());
+    if (id == null) return;
+    _bumpChat(data);
+    OneContext().push(MaterialPageRoute(builder: (_) {
+      return ChOrderChat(orderId: id);
+    }));
+  }
+
   static void _openCookOrder(Map<String, dynamic> data) {
     final id = int.tryParse(data['order_id'].toString());
     if (id == null) return;
@@ -140,6 +164,8 @@ class PushNotificationService {
               Navigator.of(context).pop();
               if (_isCookOrder(message.data)) {
                 _openCookOrder(message.data);
+              } else if (_isCookChat(message.data)) {
+                _openCookChat(message.data);
               } else if (message.data['item_type'] == 'order') {
                 OneContext().push(MaterialPageRoute(builder: (_) {
                   return OrderDetails(
@@ -182,6 +208,8 @@ class PushNotificationService {
     final data = Map<String, dynamic>.from(message['data'] ?? {});
     if (_isCookOrder(data)) {
       _openCookOrder(data);
+    } else if (_isCookChat(data)) {
+      _openCookChat(data);
     } else if (data['item_type'] == 'order') {
       OneContext().push(MaterialPageRoute(builder: (_) {
         return OrderDetails(
