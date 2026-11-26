@@ -1,6 +1,7 @@
 import 'package:active_ecommerce_seller_app/app_config.dart';
 import 'package:active_ecommerce_seller_app/app_theme.dart';
 import 'package:active_ecommerce_seller_app/cook_habibi/ch_session.dart';
+import 'package:active_ecommerce_seller_app/hal_al_muskila/hm_session.dart';
 import 'package:active_ecommerce_seller_app/screens/service_chooser.dart';
 import 'package:active_ecommerce_seller_app/custom/input_decorations.dart';
 import 'package:active_ecommerce_seller_app/custom/intl_phone_input.dart';
@@ -114,8 +115,9 @@ class _LoginState extends State<Login> {
 
       await access_token.load();
       if (access_token.$!.isNotEmpty) {
-        // Cook Habibi push device, then let the seller pick a dashboard
+        // Cook Habibi & Hal Al Mushkila push devices, then let the seller pick a dashboard
         ChSession.registerPush();
+        HmSession.registerPush();
         if (!mounted) return;
         Navigator.pushAndRemoveUntil(
             context,

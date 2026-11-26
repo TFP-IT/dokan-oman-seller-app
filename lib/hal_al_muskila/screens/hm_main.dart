@@ -1,32 +1,33 @@
 import 'package:active_ecommerce_seller_app/app_theme.dart';
 import 'package:active_ecommerce_seller_app/custom/customDateTimes.dart';
-import 'package:active_ecommerce_seller_app/hal_al_muskila/screens/muskila_seller_bookings.dart';
-import 'package:active_ecommerce_seller_app/hal_al_muskila/screens/muskila_seller_chat.dart';
-import 'package:active_ecommerce_seller_app/hal_al_muskila/screens/muskila_seller_dashboard.dart';
-import 'package:active_ecommerce_seller_app/hal_al_muskila/screens/muskila_seller_job_board.dart';
-import 'package:active_ecommerce_seller_app/hal_al_muskila/screens/muskila_seller_profile.dart';
+import 'package:active_ecommerce_seller_app/hal_al_muskila/screens/hm_bookings.dart';
+import 'package:active_ecommerce_seller_app/hal_al_muskila/screens/hm_chat.dart';
+import 'package:active_ecommerce_seller_app/hal_al_muskila/screens/hm_home.dart';
+import 'package:active_ecommerce_seller_app/hal_al_muskila/screens/hm_job_board.dart';
+import 'package:active_ecommerce_seller_app/hal_al_muskila/screens/hm_notifications.dart';
+import 'package:active_ecommerce_seller_app/hal_al_muskila/screens/hm_profile.dart';
 import 'package:active_ecommerce_seller_app/my_theme.dart';
 import 'package:active_ecommerce_seller_app/screens/service_chooser.dart';
 import 'package:flutter/material.dart';
 
-/// Hal Al Mushkila Specialist / Pro seller main shell with persistent bottom navigation.
-class MuskilaSellerMain extends StatefulWidget {
-  const MuskilaSellerMain({super.key});
+/// Main shell for Hal Al Mushkila Seller: 4-tab navigation with Cook Habibi visual design.
+class HmMain extends StatefulWidget {
+  const HmMain({super.key});
 
   @override
-  State<MuskilaSellerMain> createState() => _MuskilaSellerMainState();
+  State<HmMain> createState() => _HmMainState();
 }
 
-class _MuskilaSellerMainState extends State<MuskilaSellerMain> {
+class _HmMainState extends State<HmMain> {
   int _index = 0;
 
   @override
   Widget build(BuildContext context) {
     final pages = [
       _DashboardTab(onSwitchTab: (i) => setState(() => _index = i)),
-      const MuskilaSellerBookingsScreen(showBack: false),
-      const MuskilaSellerJobBoardScreen(showBack: false),
-      const MuskilaSellerProfileScreen(showBack: false),
+      const HmBookingsScreen(showBack: false),
+      const HmJobBoardScreen(showBack: false),
+      const HmProfileScreen(showBack: false),
     ];
 
     return PopScope(
@@ -42,21 +43,11 @@ class _MuskilaSellerMainState extends State<MuskilaSellerMain> {
       },
       child: Scaffold(
         backgroundColor: MyTheme.paper,
-        body: IndexedStack(
-          index: _index,
-          children: pages,
-        ),
+        body: IndexedStack(index: _index, children: pages),
         bottomNavigationBar: Container(
           decoration: const BoxDecoration(
             color: Colors.white,
             border: Border(top: BorderSide(color: MyTheme.hairline)),
-            boxShadow: [
-              BoxShadow(
-                color: MyTheme.app_accent_shado,
-                blurRadius: 12,
-                offset: Offset(0, -3),
-              ),
-            ],
           ),
           child: NavigationBarTheme(
             data: NavigationBarThemeData(
@@ -97,7 +88,7 @@ class _MuskilaSellerMainState extends State<MuskilaSellerMain> {
                 NavigationDestination(
                   icon: Icon(Icons.explore_outlined),
                   selectedIcon: Icon(Icons.explore_rounded),
-                  label: "Job Leads",
+                  label: "Job Board",
                 ),
                 NavigationDestination(
                   icon: Icon(Icons.person_outline_rounded),
@@ -127,7 +118,7 @@ class _DashboardTab extends StatelessWidget {
       backgroundColor: MyTheme.paper,
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        backgroundColor: MyTheme.navy_deep,
+        backgroundColor: MyTheme.navy,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
@@ -138,45 +129,34 @@ class _DashboardTab extends StatelessWidget {
           icon: const Icon(Icons.apps_rounded, color: Colors.white),
           onPressed: () => ServiceChooser.open(context),
         ),
-        title: Row(
-          children: [
-            Flexible(
-              child: Text(
-                "Hal Al Mushkila",
-                overflow: TextOverflow.ellipsis,
-                style: AppTheme.body(
-                  size: 17,
-                  weight: FontWeight.w700,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-              decoration: BoxDecoration(
-                color: MyTheme.amber,
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: Text(
-                "PRO",
-                style: AppTheme.body(
-                  size: 10,
-                  weight: FontWeight.w800,
-                  color: MyTheme.navy_deep,
-                ),
-              ),
-            ),
-          ],
+        title: Text(
+          "Hal Al Mushkila",
+          overflow: TextOverflow.ellipsis,
+          style: AppTheme.body(
+            size: 18,
+            weight: FontWeight.w600,
+            color: Colors.white,
+          ),
         ),
         actions: [
+          IconButton(
+            tooltip: "Notifications",
+            icon: const Icon(Icons.notifications_none_rounded,
+                color: Colors.white, size: 22),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const HmNotificationsScreen(),
+              ),
+            ),
+          ),
           IconButton(
             tooltip: "Messages",
             icon: const Icon(Icons.chat_bubble_outline_rounded,
                 color: Colors.white, size: 21),
             onPressed: () => Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => const MuskilaSellerChatScreen()),
+              MaterialPageRoute(builder: (_) => const HmChatScreen()),
             ),
           ),
           Padding(
@@ -198,7 +178,8 @@ class _DashboardTab extends StatelessWidget {
           ),
         ],
       ),
-      body: MuskilaSellerDashboard(onSwitchTab: onSwitchTab),
+      body: HmHome(onSwitchTab: onSwitchTab),
     );
   }
 }
+

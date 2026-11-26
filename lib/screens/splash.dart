@@ -1,6 +1,7 @@
 import 'package:active_ecommerce_seller_app/app_config.dart';
 import 'package:active_ecommerce_seller_app/app_theme.dart';
 import 'package:active_ecommerce_seller_app/cook_habibi/ch_session.dart';
+import 'package:active_ecommerce_seller_app/hal_al_muskila/hm_session.dart';
 import 'package:active_ecommerce_seller_app/screens/service_chooser.dart';
 import 'package:active_ecommerce_seller_app/helpers/aiz_route.dart';
 import 'package:active_ecommerce_seller_app/helpers/auth_helper.dart';
@@ -158,6 +159,7 @@ class _CustomSplashScreenState extends State<CustomSplashScreen> {
       AuthHelper().fetch_and_set().then((value) {
         if (value.result != null && value.result!) {
           ChSession.registerPush();
+          HmSession.registerPush();
           AIZRoute.pushAndRemoveAll(context, const ServiceChooser(),
               middleware: MailVerificationRouteMiddleware());
         } else {

@@ -2,6 +2,13 @@ import 'package:active_ecommerce_seller_app/cook_habibi/ch_session.dart';
 import 'package:active_ecommerce_seller_app/cook_habibi/screens/ch_order_chat.dart';
 import 'package:active_ecommerce_seller_app/cook_habibi/screens/ch_order_detail.dart';
 import 'package:active_ecommerce_seller_app/cook_habibi/screens/ch_orders.dart';
+import 'package:active_ecommerce_seller_app/hal_al_muskila/hm_session.dart';
+import 'package:active_ecommerce_seller_app/hal_al_muskila/screens/hm_booking_detail.dart';
+import 'package:active_ecommerce_seller_app/hal_al_muskila/screens/hm_bookings.dart';
+import 'package:active_ecommerce_seller_app/hal_al_muskila/screens/hm_chat.dart';
+import 'package:active_ecommerce_seller_app/hal_al_muskila/screens/hm_earnings.dart';
+import 'package:active_ecommerce_seller_app/hal_al_muskila/screens/hm_instant_requests_sheet.dart';
+import 'package:active_ecommerce_seller_app/hal_al_muskila/screens/hm_job_board.dart';
 import 'package:active_ecommerce_seller_app/helpers/shared_value_helper.dart';
 import 'package:active_ecommerce_seller_app/repositories/push_notification_repository.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -46,11 +53,12 @@ class PushNotificationService {
     // print("--fcm token--");
     // print(fcmToken);
     if (is_logged_in.$ == true && fcmToken != null) {
-      // update device token (old endpoint + Cook Habibi device, guide §3.2)
+      // update device token (old endpoint + Cook Habibi & Hal Al Mushkila devices)
       PushNotificationRepository()
           .getDeviceTokenUpdateResponse(fcmToken)
           .catchError((_) {});
       ChSession.registerPush();
+      HmSession.registerPush();
     }
 
     FirebaseMessaging.onMessage.listen((event) {
@@ -61,6 +69,10 @@ class PushNotificationService {
       } else if (_isCookChat(event.data)) {
         // refresh the chat if it is open (the push never carries the text)
         _bumpChat(event.data);
+      } else if (_isHmBooking(event.data) || _isHmEscrow(event.data)) {
+        hmBookingsRefreshTick.value++;
+      } else if (_isHmChat(event.data)) {
+        _bumpHmChat(event.data);
       }
       _showMessage(event);
       //(Map<String, dynamic> message) async => _showMessage(message);
@@ -137,6 +149,68 @@ class PushNotificationService {
     }));
   }
 
+  static bool _isHmBooking(Map<String, dynamic> data) =>
+      data['type'] == 'muskila_booking' && data['booking_id'] != null;
+
+  static bool _isHmInstantRequest(Map<String, dynamic> data) =>
+      data['type'] == 'muskila_instant_request';
+
+  static bool _isHmChat(Map<String, dynamic> data) =>
+      (data['type'] == 'muskila_chat' || data['type'] == 'muskila_offer') &&
+      data['thread_id'] != null;
+
+  static bool _isHmJobLead(Map<String, dynamic> data) =>
+      data['type'] == 'muskila_job_lead';
+
+  static bool _isHmEscrow(Map<String, dynamic> data) =>
+      data['type'] == 'muskila_escrow';
+
+  static bool _isHmType(Map<String, dynamic> data) =>
+      _isHmBooking(data) ||
+      _isHmInstantRequest(data) ||
+      _isHmChat(data) ||
+      _isHmJobLead(data) ||
+      _isHmEscrow(data);
+
+  static void _bumpHmChat(Map<String, dynamic> data) {
+    final tid = data['thread_id']?.toString();
+    if (tid == null || tid.isEmpty) return;
+    hmChatPushThreadId.value = null;
+    hmChatPushThreadId.value = tid;
+  }
+
+  static void _openHmRoute(Map<String, dynamic> data) {
+    if (_isHmBooking(data)) {
+      final id = data['booking_id'].toString();
+      if (id.isEmpty) return;
+      hmBookingsRefreshTick.value++;
+      OneContext().push(MaterialPageRoute(builder: (_) {
+        return HmBookingDetail(bookingId: id);
+      }));
+    } else if (_isHmInstantRequest(data)) {
+      final ctx = OneContext().context;
+      if (ctx != null) {
+        HmInstantRequestsSheet.show(ctx);
+      }
+    } else if (_isHmChat(data)) {
+      final tid = data['thread_id'].toString();
+      if (tid.isEmpty) return;
+      _bumpHmChat(data);
+      OneContext().push(MaterialPageRoute(builder: (_) {
+        return HmThreadChat(threadId: tid);
+      }));
+    } else if (_isHmJobLead(data)) {
+      OneContext().push(MaterialPageRoute(builder: (_) {
+        return const HmJobBoardScreen();
+      }));
+    } else if (_isHmEscrow(data)) {
+      hmBookingsRefreshTick.value++;
+      OneContext().push(MaterialPageRoute(builder: (_) {
+        return const HmEarningsScreen();
+      }));
+    }
+  }
+
   void _showMessage(RemoteMessage message) {
     //print("onMessage: $message");
 
@@ -166,6 +240,8 @@ class PushNotificationService {
                 _openCookOrder(message.data);
               } else if (_isCookChat(message.data)) {
                 _openCookChat(message.data);
+              } else if (_isHmType(message.data)) {
+                _openHmRoute(message.data);
               } else if (message.data['item_type'] == 'order') {
                 OneContext().push(MaterialPageRoute(builder: (_) {
                   return OrderDetails(
@@ -210,6 +286,8 @@ class PushNotificationService {
       _openCookOrder(data);
     } else if (_isCookChat(data)) {
       _openCookChat(data);
+    } else if (_isHmType(data)) {
+      _openHmRoute(data);
     } else if (data['item_type'] == 'order') {
       OneContext().push(MaterialPageRoute(builder: (_) {
         return OrderDetails(
