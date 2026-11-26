@@ -1,6 +1,7 @@
 import 'package:active_ecommerce_seller_app/app_theme.dart';
 import 'package:active_ecommerce_seller_app/cook_habibi/ch_api.dart';
 import 'package:active_ecommerce_seller_app/cook_habibi/ch_session.dart';
+import 'package:active_ecommerce_seller_app/hal_al_muskila/muskila_seller_session.dart';
 import 'package:active_ecommerce_seller_app/custom/CommonFunctoins.dart';
 import 'package:active_ecommerce_seller_app/helpers/shared_value_helper.dart';
 import 'package:active_ecommerce_seller_app/helpers/shop_info_helper.dart';
@@ -70,6 +71,16 @@ class SellerServices {
       tint: _saffronTint,
       open: ChSession.startScreen,
       status: _cookStatus,
+    ),
+    SellerService(
+      id: "hal_al_muskila",
+      title: "Hal Al Mushkila",
+      subtitle: "On-demand services, bookings, job board, quotes and earnings",
+      icon: Icons.handyman_outlined,
+      accent: MyTheme.navy,
+      tint: MyTheme.blue_tint,
+      open: MuskilaSellerSession.startScreen,
+      status: MuskilaSellerSession.getStatus,
     ),
   ];
 
